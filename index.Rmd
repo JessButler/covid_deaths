@@ -66,7 +66,7 @@ aberdeen_sf %>%
 
 aberdeen %>%
   select(Name, Deaths, Population, rate_million) %>%
-  filter(rate_million >= 1000) %>%
+  filter(rate_million > 800) %>%
   arrange(desc(rate_million)) %>%
   gt() %>%
   tab_header(title = "Areas with Highest Death Rates", subtitle = "areas with death rates higher than Scottish average (750/million)") %>%
