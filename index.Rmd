@@ -1,0 +1,87 @@
+---
+title: "COVID Deaths in Aberdeen"
+
+output:
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: scroll
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(tidyverse)
+library(sf)
+library(mapview)
+library(flexdashboard)
+library(gt)
+```
+
+
+```{r}
+#load deaths data and shapefiles 
+
+deaths <- read_csv(here("data", "covid-deaths-extra-tables-week-24_Table_S8.csv"))
+
+intermediate_sf <- st_read(here("data", "SG_IntermediateZone_Bdry_2011.shp"), quiet = T)
+```
+
+```{r}
+#select Aberdeen City areas' data and remove percent signs
+#join to shapefile
+
+aberdeen <-
+  deaths %>%
+  filter(Local_Authority == "Aberdeen City") %>%
+  mutate(rate_million = round(Deaths/Population * 1000000, 0))
+
+aberdeen_zones <- pull(aberdeen, Intermediate_Zone)
+
+aberdeen_sf <- filter(intermediate_sf, InterZone %in% aberdeen_zones)
+
+aberdeen_sf <-
+  merge(aberdeen_sf, aberdeen, by.x = "InterZone", by.y = "Intermediate_Zone")
+
+```
+
+
+Row
+-------------------------------------
+
+###
+
+```{r}
+aberdeen_sf %>% 
+  mapview(
+    map.types = "OpenStreetMap", 
+    zcol = "rate_million", 
+    label = aberdeen_sf$Name.x,
+    layer.name = "Death Rate (per mil)")
+```
+
+
+###
+
+```{r}
+#filter zones with highest death rate
+
+aberdeen %>%
+  select(Name, Deaths, Population, rate_million) %>%
+  filter(rate_million >= 1000) %>%
+  arrange(desc(rate_million)) %>%
+  gt() %>%
+  tab_header(title = "Most overcrowded", subtitle = "Areas with at least 30% living in overcrowded homes") %>%
+  cols_label(rate_million = "Deaths/Million")
+```
+
+Row
+-------------------------------------
+
+### Source Notes
+
+COVID deaths to 14 June 2020 from National Records Scotland
+
+Data from https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-extra-tables-week-24.zip
+
+Map shapefiles from https://data.gov.uk/dataset/133d4983-c57d-4ded-bc59-390c962ea280/intermediate-zone-boundaries-2011
+
+Code at https://github.com/JessButler/covid_deaths
