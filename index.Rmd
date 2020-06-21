@@ -69,7 +69,7 @@ aberdeen %>%
   filter(rate_million >= 1000) %>%
   arrange(desc(rate_million)) %>%
   gt() %>%
-  tab_header(title = "Most overcrowded", subtitle = "Areas with at least 30% living in overcrowded homes") %>%
+  tab_header(title = "Areas with Highest Death Rates", subtitle = "areas with death rates higher than Scottish average (750/million)") %>%
   cols_label(rate_million = "Deaths/Million")
 ```
 
